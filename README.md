@@ -108,7 +108,7 @@ Flujo: el formulario valida los campos en el navegador → obtiene un token de r
   - Verifica la acción y el puntaje de reCAPTCHA.
   - Escapa el HTML del correo.
   - No registra datos personales en los logs.
-- **Correo:** incluye los datos del cliente y un botón "Responder por WhatsApp" al teléfono indicado.
+- **Correo:** incluye los datos del cliente, un botón "Llamar al cliente" (`tel:`) y su número para WhatsApp en texto. No lleva enlaces a otros dominios, porque Resend advierte que los filtros de spam penalizan URLs distintas al dominio del remitente.
 - **Si falta alguna variable** (`RESEND_API_KEY`, `CONTACT_EMAIL_TO`, `CONTACT_EMAIL_FROM` o las claves de reCAPTCHA), el endpoint responde `503` y el formulario abre WhatsApp con el mensaje armado. **Nunca se simula un envío exitoso.**
 - **Si el envío falla**, se muestra un aviso con un botón para mandar la misma consulta por WhatsApp.
 

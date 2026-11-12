@@ -37,7 +37,7 @@ function escapeHtml(value: string): string {
 /** Quita saltos de línea y caracteres de control (asunto y campos de una línea). */
 const singleLine = (value: string) => value.replace(/[\u0000-\u001f\u007f]+/g, " ").trim();
 
-/** Número para wa.me: agrega 56 a celulares chilenos escritos sin código de país. */
+/** Número internacional: agrega 56 a celulares chilenos escritos sin código de país. */
 function whatsappDigits(phone: string): string {
   const digits = phone.replace(/\D/g, "");
   return digits.length === 9 && digits.startsWith("9") ? `56${digits}` : digits;
@@ -83,7 +83,8 @@ function buildEmail(data: ContactFormData) {
     ["Electrodoméstico", data.electrodomestico],
     ["Marca", data.marca],
   ];
-  const wa = whatsappDigits(data.telefono);
+  // Sin enlaces a otros dominios (p. ej. wa.me): los filtros de spam penalizan URLs que no coinciden con el remitente.
+  const phone = whatsappDigits(data.telefono);
 
   const html = `<!doctype html><html><body style="margin:0;background:#f5f9fc;font-family:Arial,Helvetica,sans-serif;color:#102c45">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">
@@ -100,7 +101,8 @@ ${rows
 </table>
 <p style="margin:18px 0 6px;color:#5b6b7b;font-size:15px">Descripción del problema</p>
 <p style="margin:0;font-size:15px;line-height:1.5;white-space:pre-wrap">${escapeHtml(data.problema)}</p>
-${wa ? `<p style="margin:24px 0 0"><a href="https://wa.me/${wa}" style="display:inline-block;background:#128c4b;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold">Responder por WhatsApp</a></p>` : ""}
+${phone ? `<p style="margin:24px 0 0"><a href="tel:+${phone}" style="display:inline-block;background:#062f62;color:#ffffff;text-decoration:none;padding:10px 18px;border-radius:8px;font-weight:bold">Llamar al cliente</a></p>
+<p style="margin:8px 0 0;color:#5b6b7b;font-size:13px">WhatsApp: +${phone}</p>` : ""}
 </td></tr>
 <tr><td style="padding:14px 24px;background:#f5f9fc;color:#5b6b7b;font-size:12px">Enviado desde el formulario del sitio web de ${business.name}.</td></tr>
 </table></td></tr></table></body></html>`;
