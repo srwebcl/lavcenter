@@ -7,6 +7,7 @@ import { Coverage } from "@/components/sections/Coverage";
 import { Faq } from "@/components/sections/Faq";
 import { Contact } from "@/components/sections/Contact";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { BackToTop } from "@/components/ui/BackToTop";
 import { FloatingWhatsApp } from "@/components/ui/FloatingWhatsApp";
 
 export default function HomePage() {
@@ -22,6 +23,7 @@ export default function HomePage() {
         <Contact />
       </main>
       <Footer />
+      <BackToTop />
       <FloatingWhatsApp />
       <JsonLd />
     </>

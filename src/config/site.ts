@@ -217,6 +217,7 @@ export const faqs: { question: string; answer: string }[] = [
 ];
 
 export const navigation = [
+  { href: "#inicio", label: "Inicio" },
   { href: "#servicios", label: "Servicios" },
   { href: "#marcas", label: "Marcas" },
   { href: "#cobertura", label: "Cobertura" },

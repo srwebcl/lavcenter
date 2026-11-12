@@ -36,7 +36,7 @@ No hay base de datos. El formulario envía la solicitud por correo con [Resend](
     ├── components/
     │   ├── layout/           Header (menú responsive) y Footer
     │   ├── sections/         Hero, Marcas (carrusel), Servicios, Por qué elegirnos + Cobertura, FAQ, Contacto
-    │   ├── ui/               Botón de WhatsApp, botón flotante, enlace con medición, ícono de WhatsApp
+    │   ├── ui/               Botón de WhatsApp, botón flotante, volver al inicio, enlace con medición, ícono de WhatsApp
     │   ├── analytics/        Carga de GTM o gtag.js
     │   └── seo/              Datos estructurados LocalBusiness (JSON-LD)
     └── lib/                  whatsapp.ts, contact.ts (validación), recaptcha.ts, analytics.ts, site-url.ts
@@ -89,7 +89,8 @@ Todas están documentadas en `.env.example`, que es solo una plantilla sin valor
 
 El número oficial es **+56 9 2067 5363**, para WhatsApp y llamadas. Está definido **una sola vez** en `business` (`src/config/site.ts`) y lo leen todos los botones a través de `src/lib/whatsapp.ts`. Las variables `NEXT_PUBLIC_WHATSAPP_NUMBER`, `NEXT_PUBLIC_PHONE_NUMBER` y `NEXT_PUBLIC_PHONE_DISPLAY` permiten cambiarlo sin tocar el código.
 
-- **Botón flotante:** `src/components/ui/FloatingWhatsApp.tsx`, fijo en la esquina inferior derecha y sin animaciones. Se oculta mientras el formulario de contacto está en pantalla, para no tapar el botón de envío. Sus clics se miden como `whatsapp_click` con `location = flotante`.
+- **Botón flotante:** `src/components/ui/FloatingWhatsApp.tsx`, fijo y siempre visible en la esquina inferior derecha, sin animaciones. Sus clics se miden como `whatsapp_click` con `location = flotante`.
+- **Volver al inicio:** `src/components/ui/BackToTop.tsx`, en la esquina inferior izquierda. Aparece al bajar una pantalla y sube con desplazamiento suave (instantáneo con movimiento reducido).
 - **Sin número configurado:** los botones de WhatsApp llevan al formulario.
 - **Sin teléfono configurado:** no se muestran botones de llamada.
 - **Datos estructurados:** el bloque LocalBusiness (JSON-LD) solo se publica cuando hay WhatsApp o teléfono configurado.

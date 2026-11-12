@@ -90,7 +90,8 @@ export function Hero() {
           </ul>
 
           <div className="mt-7 sm:mt-9 short:mt-6">
-            <a id="hero-cta" href="#contacto" className="btn-primary min-h-14 w-full px-8 text-base sm:w-auto">
+            {/* En móvil deja espacio a la derecha para el botón flotante de WhatsApp. */}
+            <a href="#contacto" className="btn-primary min-h-14 w-[calc(100%-4.5rem)] px-6 text-base sm:w-auto sm:px-8">
               Solicitar asistencia
               <ArrowRight className="size-4" aria-hidden="true" />
             </a>
