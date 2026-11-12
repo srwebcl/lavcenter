@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* Pantallas bajas (notebooks 768 px, móviles pequeños): el hero se compacta para caber completo */
+@custom-variant short {
+  @media (max-height: 800px) {
+    @slot;
+  }
+}
+@custom-variant xshort {
+  @media (max-height: 700px) {
+    @slot;
+  }
+}
+
+/* Paleta LAVCENTER — derivada del logotipo original */
+@theme {
+  --color-navy-950: #031d3d;
+  --color-navy-900: #04264e;
+  --color-navy: #062f62;
+  --color-navy-700: #0a3f7d;
+  --color-electric: #0878bd;
+  --color-electric-600: #0669a8;
+  --color-cyan: #16c5e9;
+  --color-ice: #eaf8fd;
+  --color-mist: #f5f9fc;
+  --color-line: #e2ebf1;
+  --color-ink: #102c45;
+  --color-muted: #5b7083;
+
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply text-navy;
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-electric);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+}
+
+/* Ritmo vertical común a todas las secciones */
+@utility section-y {
+  @apply py-20 sm:py-28;
+}
+
+@utility eyebrow {
+  @apply text-xs font-semibold tracking-[0.14em] text-electric uppercase;
+}
+
+@utility section-title {
+  @apply text-[1.875rem] leading-[1.15] font-semibold tracking-tight sm:text-[2.5rem];
+}
+
+@utility lead {
+  @apply text-lg leading-relaxed text-muted;
+}
+
+@utility btn {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl px-6 text-[0.9375rem] font-medium whitespace-nowrap transition-[background-color,border-color,color,box-shadow,transform] duration-200 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility btn-primary {
+  @apply btn bg-electric text-white shadow-[0_10px_24px_-10px_rgba(8,120,189,0.8)] hover:-translate-y-0.5 hover:bg-electric-600 hover:shadow-[0_14px_30px_-10px_rgba(8,120,189,0.9)];
+}
+
+@utility btn-secondary {
+  @apply btn border border-line bg-white text-navy shadow-[0_1px_2px_rgba(16,44,69,0.06)] hover:-translate-y-0.5 hover:border-electric/50 hover:text-electric hover:shadow-[0_10px_24px_-14px_rgba(16,44,69,0.35)];
+}
+
+/* Botón claro para fondos oscuros */
+@utility btn-light {
+  @apply btn bg-white text-navy shadow-[0_10px_24px_-12px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 hover:bg-ice;
+}
+
+/* Botón con contorno para fondos oscuros */
+@utility btn-outline-light {
+  @apply btn border border-white/25 bg-white/5 text-white hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/10;
+}
+
+@utility btn-whatsapp {
+  @apply btn bg-[#128c4b] text-white shadow-[0_10px_24px_-10px_rgba(18,140,75,0.75)] hover:-translate-y-0.5 hover:bg-[#0f773f];
+}
+
+@utility text-link {
+  @apply inline-flex items-center gap-1.5 font-medium text-electric underline-offset-4 hover:underline;
+}
+
+/* Patrón de puntos sutil para fondos oscuros */
+@utility bg-dots-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Patrón de puntos sutil para fondos claros */
+@utility bg-dots-light {
+  background-image: radial-gradient(rgba(8, 120, 189, 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* reCAPTCHA v3: el aviso legal se muestra bajo el botón del formulario. */
+.grecaptcha-badge {
+  visibility: hidden;
+}
