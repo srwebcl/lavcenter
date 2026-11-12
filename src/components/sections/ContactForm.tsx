@@ -1,7 +1,18 @@
 "use client";
 
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
-import { ChevronsUpDown, LoaderCircle, Send, Tags, WashingMachine, type LucideIcon } from "lucide-react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import {
+  Check,
+  ChevronsUpDown,
+  LoaderCircle,
+  MapPin,
+  Phone,
+  RotateCcw,
+  Send,
+  Tags,
+  WashingMachine,
+  type LucideIcon,
+} from "lucide-react";
 import { appliances, business } from "@/config/site";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { trackEvent } from "@/lib/analytics";
@@ -57,7 +68,17 @@ export function ContactForm() {
   const [data, setData] = useState<ContactFormData>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>({ type: "idle" });
+  const [sent, setSent] = useState<ContactFormData | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const successRef = useRef<HTMLDivElement>(null);
+
+  // Al confirmar el envío, lleva la vista y el foco a la confirmación.
+  useEffect(() => {
+    if (status.type !== "sent" || !successRef.current) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    successRef.current.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
+    successRef.current.focus({ preventScroll: true });
+  }, [status.type]);
 
   const update = (field: Field, value: string) => {
     setData((d) => ({ ...d, [field]: value }));
@@ -102,6 +123,7 @@ export function ContactForm() {
 
       if (result?.ok) {
         trackEvent("form_submit", { appliance: data.electrodomestico, brand: data.marca, channel: "email" });
+        setSent(data);
         setData(EMPTY);
         setStatus({ type: "sent" });
         return;
@@ -162,6 +184,73 @@ export function ContactForm() {
       {text}
     </label>
   );
+
+  if (status.type === "sent" && sent) {
+    const firstName = sent.nombre.trim().split(/\s+/)[0];
+    const waUrl = whatsappUrl();
+    return (
+      <div
+        ref={successRef}
+        tabIndex={-1}
+        role="status"
+        aria-labelledby="envio-titulo"
+        className="animate-pop relative overflow-hidden rounded-3xl bg-white p-7 text-center text-ink shadow-[0_30px_70px_-25px_rgba(0,0,0,0.6)] outline-none sm:p-10"
+      >
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-500 via-cyan to-electric" />
+
+        <span aria-hidden="true" className="mx-auto inline-flex size-20 items-center justify-center rounded-full bg-emerald-50">
+          <span className="inline-flex size-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-[0_10px_24px_-8px_rgba(5,150,105,0.7)]">
+            <Check className="size-8" strokeWidth={3} />
+          </span>
+        </span>
+
+        <h3 id="envio-titulo" className="mt-6 text-2xl font-semibold text-navy sm:text-[1.75rem]">
+          ¡Solicitud enviada!
+        </h3>
+        <p className="mx-auto mt-3 max-w-sm leading-relaxed text-muted">
+          Gracias{firstName ? `, ${firstName}` : ""}. Recibimos tu solicitud y te contactaremos al{" "}
+          <strong className="font-semibold whitespace-nowrap text-navy">{sent.telefono}</strong> para coordinar la
+          visita.
+        </p>
+
+        <dl className="mx-auto mt-7 max-w-sm divide-y divide-line border-y border-line text-left text-[0.9375rem]">
+          {[
+            { icon: WashingMachine, label: "Equipo", value: `${sent.electrodomestico} · ${sent.marca}` },
+            { icon: MapPin, label: "Comuna", value: sent.comuna },
+            { icon: Phone, label: "Teléfono", value: sent.telefono },
+          ].map(({ icon: Icon, label, value }) => (
+            <div key={label} className="flex items-center gap-3 py-3">
+              <Icon className="size-[18px] shrink-0 text-electric" aria-hidden="true" />
+              <dt className="w-20 shrink-0 text-muted">{label}</dt>
+              <dd className="min-w-0 truncate font-medium text-navy">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="mt-8 flex flex-col items-center gap-4">
+          {waUrl && (
+            <p className="text-sm text-muted">
+              ¿Es urgente?{" "}
+              <a href={waUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0f773f] underline-offset-4 hover:underline">
+                Escríbenos por WhatsApp
+              </a>
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setSent(null);
+              setStatus({ type: "idle" });
+            }}
+            className="btn-secondary min-h-11 px-5 text-sm"
+          >
+            <RotateCcw className="size-4" aria-hidden="true" />
+            Enviar otra solicitud
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -299,12 +388,6 @@ export function ContactForm() {
       )}
 
       <div aria-live="polite" className="mt-4 text-sm">
-        {status.type === "sent" && (
-          <p className="rounded-xl bg-ice px-4 py-3 text-navy">
-            <strong>Recibimos tu solicitud.</strong> Te contactaremos al teléfono que indicaste para
-            coordinar la visita.
-          </p>
-        )}
         {status.type === "whatsapp" && (
           <p className="rounded-xl bg-ice px-4 py-3 text-navy">
             Abrimos WhatsApp con tu mensaje. Para completar la solicitud, presiona <strong>Enviar</strong> en
