@@ -80,7 +80,7 @@ Todas están documentadas en `.env.example`, que es solo una plantilla sin valor
 | `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | Sí (formulario) | Clave de sitio de reCAPTCHA v3 (pública) |
 | `RECAPTCHA_SECRET_KEY` | Sí (formulario) | Clave secreta de reCAPTCHA v3. **Secreta** |
 | `RECAPTCHA_MIN_SCORE` | No | Puntaje mínimo aceptado, de 0.0 a 1.0. Por defecto `0.5` |
-| `NEXT_PUBLIC_GTM_ID` | No | `GTM-XXXXXXX` |
+| `NEXT_PUBLIC_GTM_ID` | No | Contenedor de Google Tag Manager. Por defecto `GTM-MJRMCF64` (definido en `src/lib/analytics.ts`) |
 | `NEXT_PUBLIC_GA_MEASUREMENT_ID` | No | `G-XXXXXXXXXX` (solo si no se usa GTM) |
 | `NEXT_PUBLIC_GOOGLE_ADS_ID` | No | `AW-XXXXXXXXX` (solo si no se usa GTM) |
 | `NEXT_PUBLIC_GOOGLE_ADS_LABEL_*` | No | Etiquetas de conversión para WhatsApp, teléfono y formulario |
@@ -119,7 +119,7 @@ Antes de publicar:
 
 ## Cobertura
 
-Las ciudades atendidas están en `coverage.areas` (`src/config/site.ts`): Santiago, La Serena, Coquimbo, Viña del Mar, Valparaíso, Concón y Talca. Desde esa única lista se generan la sección "Por qué elegir LAVCENTER" (lista de ciudades), el footer, la pregunta frecuente "¿En qué ciudades atienden?", la meta description y `areaServed` del JSON-LD. Para agregar o quitar una ciudad basta con editar la lista. Si se vacía, la web vuelve a invitar a consultar la cobertura.
+Las ciudades atendidas están en `coverage.areas` (`src/config/site.ts`): Santiago, La Serena, Coquimbo, Viña del Mar, Valparaíso, Concón, Talca y Zapallar. Desde esa única lista se generan la sección "Por qué elegir LAVCENTER" (lista de ciudades), el footer, la pregunta frecuente "¿En qué ciudades atienden?", la meta description y `areaServed` del JSON-LD. Para agregar o quitar una ciudad basta con editar la lista. Si se vacía, la web vuelve a invitar a consultar la cobertura.
 
 ## Datos comerciales pendientes
 
@@ -134,7 +134,7 @@ Se editan en `src/config/site.ts`:
 
 `src/components/analytics/Analytics.tsx` carga una sola vía de medición, para no duplicar etiquetas:
 
-1. **Si existe `NEXT_PUBLIC_GTM_ID`:** se carga solo GTM. GA4 y las conversiones de Ads se configuran dentro del contenedor.
+1. **GTM (`GTM-MJRMCF64`, activo por defecto):** se carga solo GTM. GA4 y las conversiones de Ads se configuran dentro del contenedor.
 2. **Si no hay GTM pero hay GA4 o Ads:** se carga `gtag.js` una vez y se configuran ambos IDs.
 3. **Sin IDs:** no se carga ningún script.
 

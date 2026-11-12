@@ -82,6 +82,7 @@ export const coverage = {
     "Valparaíso",
     "Concón",
     "Talca",
+    "Zapallar",
   ] as string[],
 };
 

@@ -1,11 +1,11 @@
 /**
  * Medición: GA4, Google Tag Manager y conversiones de Google Ads.
- * Los IDs se leen SOLO desde variables de entorno (ver .env.example).
- * Si una variable no existe, no se carga ningún script asociado.
+ * El contenedor de GTM de LAVCENTER (GTM-MJRMCF64) es el valor por defecto; se puede
+ * sobrescribir con NEXT_PUBLIC_GTM_ID. GA4 y Google Ads se configuran dentro de GTM.
  */
 
 export const analyticsConfig = {
-  gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
+  gtmId: process.env.NEXT_PUBLIC_GTM_ID || "GTM-MJRMCF64",
   ga4Id: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "",
   adsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || "",
   adsLabels: {
