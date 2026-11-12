@@ -56,8 +56,8 @@ export const business = {
   /** Teléfono tal como se muestra en pantalla. */
   phoneDisplay: process.env.NEXT_PUBLIC_PHONE_DISPLAY || "+56 9 2067 5363",
 
-  /** Correo de contacto. PENDIENTE (opcional). */
-  email: null as string | null,
+  /** Correo oficial de contacto (se muestra en contacto, footer y datos estructurados). */
+  email: "servicio@lavcenter.cl" as string | null,
 
   /** Horario de atención en texto. PENDIENTE (opcional). Ej.: "Lunes a viernes, 9:00 a 18:00". */
   hours: null as string | null,

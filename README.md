@@ -70,13 +70,13 @@ Todas están documentadas en `.env.example`, que es solo una plantilla sin valor
 
 | Variable | Obligatoria | Descripción |
 |---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | Sí (producción) | Dominio definitivo, por ejemplo `https://www.lavcenter.cl`. Se usa en canonical, Open Graph, sitemap y robots. Si falta, en Vercel se usa el dominio de producción del proyecto |
+| `NEXT_PUBLIC_SITE_URL` | No | Dominio del sitio para canonical, Open Graph, sitemap y robots. Por defecto `https://www.lavcenter.cl` |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | No | Sobrescribe el WhatsApp oficial definido en `site.ts`. Solo dígitos, con código de país |
 | `NEXT_PUBLIC_PHONE_NUMBER` | No | Sobrescribe el teléfono de llamadas (solo dígitos) |
 | `NEXT_PUBLIC_PHONE_DISPLAY` | No | Sobrescribe cómo se muestra el teléfono |
 | `RESEND_API_KEY` | Sí (formulario) | Clave de API de Resend. **Secreta** |
-| `CONTACT_EMAIL_TO` | Sí (formulario) | Correo que recibe las solicitudes. Admite varios separados por coma |
-| `CONTACT_EMAIL_FROM` | Sí (formulario) | Remitente con dominio verificado en Resend, ej.: `LAVCENTER <formulario@dominio.cl>` |
+| `CONTACT_EMAIL_TO` | Sí (formulario) | Correo que recibe las solicitudes: `servicio@lavcenter.cl`. Admite varios separados por coma |
+| `CONTACT_EMAIL_FROM` | Sí (formulario) | Remitente con dominio verificado en Resend: `LAVCENTER <servicio@lavcenter.cl>` |
 | `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | Sí (formulario) | Clave de sitio de reCAPTCHA v3 (pública) |
 | `RECAPTCHA_SECRET_KEY` | Sí (formulario) | Clave secreta de reCAPTCHA v3. **Secreta** |
 | `RECAPTCHA_MIN_SCORE` | No | Puntaje mínimo aceptado, de 0.0 a 1.0. Por defecto `0.5` |
@@ -113,8 +113,8 @@ Flujo: el formulario valida los campos en el navegador → obtiene un token de r
 
 Antes de publicar:
 
-1. **Resend:** verificar el dominio de envío (Domains → Add domain) y usar un remitente de ese dominio en `CONTACT_EMAIL_FROM`.
-2. **reCAPTCHA:** en la [consola de reCAPTCHA](https://www.google.com/recaptcha/admin), agregar a la clave el dominio definitivo y, si se probará en local, `localhost`. Si el dominio no está autorizado, Google responde `browser-error` y el formulario muestra el aviso con WhatsApp. Los rechazos se registran en los logs del servidor con el código de Google, sin datos personales.
+1. **Resend:** verificar el dominio `lavcenter.cl` (Domains → Add domain) agregando en el DNS los registros que indica Resend. Sin eso, Resend rechaza el remitente `servicio@lavcenter.cl`.
+2. **reCAPTCHA:** en la [consola de reCAPTCHA](https://www.google.com/recaptcha/admin), agregar a la clave el dominio `lavcenter.cl` (cubre `www`) y, si se probará en local, `localhost`. Si el dominio no está autorizado, Google responde `browser-error` y el formulario muestra el aviso con WhatsApp. Los rechazos se registran en los logs del servidor con el código de Google, sin datos personales.
 
 ## Cobertura
 
@@ -124,7 +124,8 @@ Las ciudades atendidas están en `coverage.areas` (`src/config/site.ts`): Santia
 
 Se editan en `src/config/site.ts`:
 
-- **`business.email` y `business.hours`:** opcionales. Solo se muestran si tienen valor.
+- **`business.email`:** `servicio@lavcenter.cl`, se muestra en contacto, footer y datos estructurados.
+- **`business.hours`:** opcional. Solo se muestra si tiene valor.
 - **`brands`:** confirmar que LAVCENTER atiende todas las marcas del listado, que proviene del material de referencia Multilav.
 - **`faqs`:** revisar las respuestas sobre visita técnica y garantía. Están redactadas sin inventar precios ni condiciones.
 
@@ -156,8 +157,8 @@ Las consultas por servicio se distinguen por `location = servicio_<id>` dentro d
 2. En Vercel, ir a **Add New → Project** e importar el repositorio. El framework se detecta como Next.js y no hace falta cambiar los comandos de build ni el directorio de salida.
 3. En **Environment Variables**, cargar para el entorno *Production*: `NEXT_PUBLIC_SITE_URL`, las variables del formulario (Resend y reCAPTCHA) y los IDs de medición si existen. Marcar `RESEND_API_KEY` y `RECAPTCHA_SECRET_KEY` como *Sensitive*.
 4. Pulsar **Deploy**.
-5. En **Settings → Domains**, agregar el dominio definitivo y configurar el DNS según las indicaciones de Vercel.
-6. Comprobar `https://dominio/robots.txt` y `https://dominio/sitemap.xml`, y enviar el sitemap a Google Search Console.
+5. En **Settings → Domains**, agregar `www.lavcenter.cl` (y `lavcenter.cl` redirigiendo a `www`) y configurar el DNS según las indicaciones de Vercel.
+6. Comprobar `https://www.lavcenter.cl/robots.txt` y `https://www.lavcenter.cl/sitemap.xml`, y enviar el sitemap a Google Search Console.
 
 ## Créditos de recursos gráficos
 
