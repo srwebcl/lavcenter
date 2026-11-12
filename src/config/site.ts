@@ -9,12 +9,6 @@
  * oculta automáticamente los elementos que dependen de ellos.
  */
 
-export type ApplianceType =
-  | "Lavadora"
-  | "Secadora"
-  | "Lavavajillas"
-  | "Otro electrodoméstico";
-
 export interface Service {
   id: string;
   title: string;
@@ -22,8 +16,6 @@ export interface Service {
   inquiry: string;
   description: string;
   image: { src: string; alt: string };
-  /** Electrodoméstico preseleccionado si se consulta desde el formulario. */
-  appliance: ApplianceType;
 }
 
 export interface Brand {
@@ -103,7 +95,6 @@ export const services: Service[] = [
       src: "/images/servicios/reparacion-lavadoras.webp",
       alt: "Lavadora de carga frontal instalada en un hogar",
     },
-    appliance: "Lavadora",
   },
   {
     id: "secadoras",
@@ -114,7 +105,6 @@ export const services: Service[] = [
       src: "/images/servicios/reparacion-secadoras.webp",
       alt: "Persona retirando ropa del tambor de una secadora",
     },
-    appliance: "Secadora",
   },
   {
     id: "lavavajillas",
@@ -125,7 +115,6 @@ export const services: Service[] = [
       src: "/images/servicios/reparacion-lavavajillas.webp",
       alt: "Lavavajillas abierto con la bandeja de vajilla",
     },
-    appliance: "Lavavajillas",
   },
   {
     id: "mantencion",
@@ -136,7 +125,6 @@ export const services: Service[] = [
       src: "/images/servicios/mantencion-electrodomesticos.webp",
       alt: "Técnico revisando una pieza interna de un electrodoméstico",
     },
-    appliance: "Otro electrodoméstico",
   },
   {
     id: "diagnostico",
@@ -147,15 +135,7 @@ export const services: Service[] = [
       src: "/images/servicios/diagnostico-tecnico.webp",
       alt: "Panel de control y selector de programas de una lavadora",
     },
-    appliance: "Lavadora",
   },
-];
-
-export const appliances: ApplianceType[] = [
-  "Lavadora",
-  "Secadora",
-  "Lavavajillas",
-  "Otro electrodoméstico",
 ];
 
 /**

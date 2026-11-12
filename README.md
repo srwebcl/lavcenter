@@ -97,18 +97,27 @@ El número oficial es **+56 9 2067 5363**, para WhatsApp y llamadas. Está defin
 
 ## Formulario de contacto (Resend + reCAPTCHA v3)
 
+**Campos (todos obligatorios):**
+
+- **Nombre y apellido:** se corrige a mayúscula inicial ("maría de la fuente" → "María de la Fuente").
+- **Correo:** se pasa a minúsculas y se valida el formato. Al responder el correo recibido, la respuesta va directo al cliente (`reply_to`).
+- **Celular:** el prefijo `+56 9` es fijo; se escriben 8 dígitos y se muestra como `+56 9 1234 5678`. Acepta pegar el número completo. Rechaza números repetidos o correlativos, como 1111 1111 o 1234 5678.
+- **Comuna:** se corrige a mayúscula inicial.
+- **Equipo, marca y problema:** un solo campo de texto, de al menos 15 caracteres, donde se pide indicar el tipo de equipo, la marca y la falla.
+
+El mismo formato y las mismas reglas se aplican en el servidor (`src/lib/contact.ts`).
+
 Flujo: el formulario valida los campos en el navegador → obtiene un token de reCAPTCHA v3 (acción `contacto`) → `POST /api/contacto` → el servidor vuelve a validar, verifica el token con Google y envía el correo con la API de Resend.
 
 - **reCAPTCHA se carga solo al empezar a usar el formulario**, para no afectar la velocidad de la página. El distintivo flotante de Google está oculto. A cambio, bajo el botón se muestra el aviso legal que Google exige en ese caso.
 - **Seguridad del endpoint:**
   - Solo acepta `POST` con JSON, desde el mismo origen, y de hasta 10 KB.
   - Valida y limita el largo de cada campo con las mismas reglas que el formulario (`src/lib/contact.ts`).
-  - Solo acepta las marcas y electrodomésticos de la lista.
   - Incluye un campo trampa contra bots.
   - Verifica la acción y el puntaje de reCAPTCHA.
   - Escapa el HTML del correo.
   - No registra datos personales en los logs.
-- **Correo:** incluye los datos del cliente, un botón "Llamar al cliente" (`tel:`) y su número para WhatsApp en texto. No lleva enlaces a otros dominios, porque Resend advierte que los filtros de spam penalizan URLs distintas al dominio del remitente.
+- **Correo recibido:** incluye los datos del cliente y un botón "Llamar al cliente" (`tel:`). Se puede responder directo al cliente. No lleva enlaces a otros dominios, porque Resend advierte que los filtros de spam penalizan URLs distintas al dominio del remitente.
 - **Si falta alguna variable** (`RESEND_API_KEY`, `CONTACT_EMAIL_TO`, `CONTACT_EMAIL_FROM` o las claves de reCAPTCHA), el endpoint responde `503` y el formulario abre WhatsApp con el mensaje armado. **Nunca se simula un envío exitoso.**
 - **Si el envío falla**, se muestra un aviso con un botón para mandar la misma consulta por WhatsApp.
 
@@ -144,7 +153,7 @@ Eventos que se envían a `dataLayer`, y también a gtag cuando no hay GTM:
 |---|---|---|
 | `whatsapp_click` | Clic en cualquier botón de WhatsApp | `location` (header, menu_movil, flotante, servicio_lavadoras, contacto, footer…) |
 | `phone_click` | Clic en un enlace `tel:` | `location` |
-| `form_submit` | Solicitud enviada (por correo o, como respaldo, por WhatsApp) | `appliance`, `brand`, `channel` (`email` o `whatsapp`) |
+| `form_submit` | Solicitud enviada (por correo o, como respaldo, por WhatsApp) | `channel` (`email` o `whatsapp`) |
 
 Las consultas por servicio se distinguen por `location = servicio_<id>` dentro de `whatsapp_click`.
 

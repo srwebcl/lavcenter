@@ -1,4 +1,5 @@
 import { business } from "@/config/site";
+import { formatPhone, type ContactFormData } from "@/lib/contact";
 
 /** Mensaje inicial genérico para los botones de WhatsApp. */
 export const DEFAULT_WHATSAPP_MESSAGE = `Hola ${business.name}, quiero consultar por un servicio técnico.`;
@@ -17,25 +18,15 @@ export function serviceMessage(inquiry: string): string {
   return `Hola ${business.name}, quiero consultar por ${inquiry}.`;
 }
 
-export interface ContactFormData {
-  nombre: string;
-  telefono: string;
-  comuna: string;
-  electrodomestico: string;
-  marca: string;
-  problema: string;
-}
-
 export function contactFormMessage(data: ContactFormData): string {
   return [
     `Hola ${business.name}, quiero solicitar asistencia técnica.`,
     "",
     `*Nombre:* ${data.nombre}`,
-    `*Teléfono:* ${data.telefono}`,
+    `*Correo:* ${data.email}`,
+    `*Teléfono:* ${formatPhone(data.telefono)}`,
     `*Comuna:* ${data.comuna}`,
-    `*Electrodoméstico:* ${data.electrodomestico}`,
-    `*Marca:* ${data.marca}`,
-    `*Problema:* ${data.problema}`,
+    `*Equipo y problema:* ${data.problema}`,
   ].join("\n");
 }
 

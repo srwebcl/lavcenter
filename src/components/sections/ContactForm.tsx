@@ -1,44 +1,31 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import {
-  Check,
-  ChevronsUpDown,
-  LoaderCircle,
-  MapPin,
-  Phone,
-  RotateCcw,
-  Send,
-  Tags,
-  WashingMachine,
-  type LucideIcon,
-} from "lucide-react";
-import { appliances, business } from "@/config/site";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { Check, LoaderCircle, Mail, MapPin, Phone, RotateCcw, Send } from "lucide-react";
+import { business } from "@/config/site";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { trackEvent } from "@/lib/analytics";
 import {
-  BRAND_OPTIONS,
   CONTACT_FIELDS,
   CONTACT_MAX_LENGTH,
+  PHONE_PREFIX,
+  formatPhone,
+  formatPhoneInput,
+  normalizeContact,
+  toTitleCase,
   validateContact,
   type ContactApiResponse,
   type ContactErrors,
   type ContactField,
+  type ContactFormData,
 } from "@/lib/contact";
 import { RECAPTCHA_SITE_KEY, getRecaptchaToken, loadRecaptcha } from "@/lib/recaptcha";
-import { contactFormMessage, whatsappUrl, type ContactFormData } from "@/lib/whatsapp";
+import { contactFormMessage, whatsappUrl } from "@/lib/whatsapp";
 
 type Field = ContactField;
 type Errors = ContactErrors;
 
-const EMPTY: ContactFormData = {
-  nombre: "",
-  telefono: "",
-  comuna: "",
-  electrodomestico: "",
-  marca: "",
-  problema: "",
-};
+const EMPTY: ContactFormData = { nombre: "", email: "", telefono: "", comuna: "", problema: "" };
 
 type Status =
   | { type: "idle" }
@@ -60,9 +47,7 @@ function openWhatsApp(data: ContactFormData): boolean {
 }
 
 const inputClass =
-  "mt-2 block w-full rounded-xl border border-line bg-mist/70 px-4 py-3 text-base text-ink placeholder:text-muted/70 transition-[border-color,background-color,box-shadow] duration-150 hover:border-electric/40 focus:border-electric focus:bg-white focus:outline-none focus:ring-4 focus:ring-electric/15 aria-[invalid=true]:border-red-600 aria-[invalid=true]:bg-red-50/40";
-
-const selectClass = `${inputClass} cursor-pointer appearance-none pr-12 pl-11 invalid:text-muted/80`;
+  "block w-full rounded-xl border border-line bg-mist/70 px-4 py-3 text-base text-ink placeholder:text-muted/70 transition-[border-color,background-color,box-shadow] duration-150 hover:border-electric/40 focus:border-electric focus:bg-white focus:outline-none focus:ring-4 focus:ring-electric/15 aria-[invalid=true]:border-red-600 aria-[invalid=true]:bg-red-50/40";
 
 export function ContactForm() {
   const [data, setData] = useState<ContactFormData>(EMPTY);
@@ -85,9 +70,25 @@ export function ContactForm() {
     if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
   };
 
-  const fallbackToWhatsApp = () => {
-    if (openWhatsApp(data)) {
-      trackEvent("form_submit", { appliance: data.electrodomestico, brand: data.marca, channel: "whatsapp" });
+  /** Al salir del campo se corrige el formato (mayúsculas, minúsculas, espacios). */
+  const tidy = (field: Field) => {
+    setData((d) => {
+      const v = d[field];
+      const fixed =
+        field === "nombre" || field === "comuna"
+          ? toTitleCase(v)
+          : field === "email"
+            ? v.trim().toLowerCase()
+            : field === "telefono"
+              ? formatPhoneInput(v)
+              : v.trim();
+      return fixed === v ? d : { ...d, [field]: fixed };
+    });
+  };
+
+  const fallbackToWhatsApp = (clean: ContactFormData) => {
+    if (openWhatsApp(clean)) {
+      trackEvent("form_submit", { channel: "whatsapp" });
       setStatus({ type: "whatsapp" });
     } else {
       setStatus({ type: "unavailable" });
@@ -98,7 +99,9 @@ export function ContactForm() {
     e.preventDefault();
     if (status.type === "sending") return;
 
-    const found = validateContact(data);
+    const clean = normalizeContact(data);
+    setData(clean);
+    const found = validateContact(clean);
     setErrors(found);
     const firstInvalid = CONTACT_FIELDS.find((f) => found[f]);
     if (firstInvalid) {
@@ -108,7 +111,7 @@ export function ContactForm() {
     }
 
     // Sin reCAPTCHA configurado el servidor no acepta envíos: se usa WhatsApp.
-    if (!RECAPTCHA_SITE_KEY) return fallbackToWhatsApp();
+    if (!RECAPTCHA_SITE_KEY) return fallbackToWhatsApp(clean);
 
     setStatus({ type: "sending" });
     try {
@@ -117,18 +120,18 @@ export function ContactForm() {
       const res = await fetch("/api/contacto", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, empresa, token }),
+        body: JSON.stringify({ ...clean, empresa, token }),
       });
       const result = (await res.json().catch(() => null)) as ContactApiResponse | null;
 
       if (result?.ok) {
-        trackEvent("form_submit", { appliance: data.electrodomestico, brand: data.marca, channel: "email" });
-        setSent(data);
+        trackEvent("form_submit", { channel: "email" });
+        setSent(clean);
         setData(EMPTY);
         setStatus({ type: "sent" });
         return;
       }
-      if (result?.error === "not_configured") return fallbackToWhatsApp();
+      if (result?.error === "not_configured") return fallbackToWhatsApp(clean);
       if (result?.error === "invalid" && result.fields) {
         setErrors(result.fields);
         setStatus({ type: "idle" });
@@ -151,9 +154,13 @@ export function ContactForm() {
     name: field,
     value: data[field],
     maxLength: CONTACT_MAX_LENGTH[field],
+    required: true,
     "aria-invalid": errors[field] ? true : undefined,
-    "aria-describedby": errors[field] ? `contacto-${field}-error` : undefined,
-    className: inputClass,
+    "aria-describedby":
+      [errors[field] && `contacto-${field}-error`, field === "problema" && "contacto-problema-ayuda"]
+        .filter(Boolean)
+        .join(" ") || undefined,
+    onBlur: () => tidy(field),
   });
 
   const errorText = (field: Field) =>
@@ -163,30 +170,18 @@ export function ContactForm() {
       </p>
     ) : null;
 
-  const selectWrap = (Icon: LucideIcon, select: ReactNode) => (
-    <div className="group relative">
-      {select}
-      <Icon
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-4 mt-1 size-[18px] -translate-y-1/2 text-electric"
-      />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 right-2 mt-1 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-lg bg-white text-muted ring-1 ring-line transition-colors group-focus-within:text-electric group-focus-within:ring-electric/40"
-      >
-        <ChevronsUpDown className="size-4" />
-      </span>
-    </div>
-  );
-
   const label = (field: Field, text: string) => (
-    <label htmlFor={`contacto-${field}`} className="block text-sm font-medium text-navy">
+    <label htmlFor={`contacto-${field}`} className="mb-2 block text-sm font-medium text-navy">
       {text}
+      <span className="text-red-600" aria-hidden="true">
+        {" "}
+        *
+      </span>
     </label>
   );
 
   if (status.type === "sent" && sent) {
-    const firstName = sent.nombre.trim().split(/\s+/)[0];
+    const firstName = sent.nombre.split(" ")[0];
     const waUrl = whatsappUrl();
     return (
       <div
@@ -209,19 +204,19 @@ export function ContactForm() {
         </h3>
         <p className="mx-auto mt-3 max-w-sm leading-relaxed text-muted">
           Gracias{firstName ? `, ${firstName}` : ""}. Recibimos tu solicitud y te contactaremos al{" "}
-          <strong className="font-semibold whitespace-nowrap text-navy">{sent.telefono}</strong> para coordinar la
-          visita.
+          <strong className="font-semibold whitespace-nowrap text-navy">{formatPhone(sent.telefono)}</strong> para
+          coordinar la visita.
         </p>
 
         <dl className="mx-auto mt-7 max-w-sm divide-y divide-line border-y border-line text-left text-[0.9375rem]">
           {[
-            { icon: WashingMachine, label: "Equipo", value: `${sent.electrodomestico} · ${sent.marca}` },
+            { icon: Phone, label: "Teléfono", value: formatPhone(sent.telefono) },
+            { icon: Mail, label: "Correo", value: sent.email },
             { icon: MapPin, label: "Comuna", value: sent.comuna },
-            { icon: Phone, label: "Teléfono", value: sent.telefono },
-          ].map(({ icon: Icon, label, value }) => (
-            <div key={label} className="flex items-center gap-3 py-3">
+          ].map(({ icon: Icon, label: text, value }) => (
+            <div key={text} className="flex items-center gap-3 py-3">
               <Icon className="size-[18px] shrink-0 text-electric" aria-hidden="true" />
-              <dt className="w-20 shrink-0 text-muted">{label}</dt>
+              <dt className="w-20 shrink-0 text-muted">{text}</dt>
               <dd className="min-w-0 truncate font-medium text-navy">{value}</dd>
             </div>
           ))}
@@ -269,80 +264,90 @@ export function ContactForm() {
         Solicitar asistencia técnica
       </h3>
       <p className="mt-2 text-sm leading-relaxed text-muted">
-        Todos los campos son obligatorios. Te contactaremos al teléfono que indiques.
+        Todos los campos son obligatorios. Te contactaremos al celular que indiques.
       </p>
 
       <div className="mt-7 grid gap-5 sm:grid-cols-2">
-        <div>
-          {label("nombre", "Nombre")}
+        <div className="sm:col-span-2">
+          {label("nombre", "Nombre y apellido")}
           <input
             {...fieldProps("nombre")}
             type="text"
             autoComplete="name"
-            placeholder="Tu nombre"
+            autoCapitalize="words"
+            placeholder="Ej.: María González"
+            className={inputClass}
             onChange={(e) => update("nombre", e.target.value)}
           />
           {errorText("nombre")}
         </div>
+
         <div>
-          {label("telefono", "Teléfono")}
+          {label("email", "Correo electrónico")}
           <input
-            {...fieldProps("telefono")}
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+56 9 1234 5678"
-            onChange={(e) => update("telefono", e.target.value)}
+            {...fieldProps("email")}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            placeholder="nombre@correo.cl"
+            className={inputClass}
+            onChange={(e) => update("email", e.target.value)}
           />
+          {errorText("email")}
+        </div>
+
+        <div>
+          {label("telefono", "Celular")}
+          {/* "+56 9" fijo: solo se escriben los 8 dígitos y se formatea como 1234 5678. */}
+          <div className="relative">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 flex items-center border-r border-line pr-3 pl-4 text-base font-medium text-navy"
+            >
+              {PHONE_PREFIX}
+            </span>
+            <input
+              {...fieldProps("telefono")}
+              type="tel"
+              inputMode="numeric"
+              autoComplete="tel-national"
+              placeholder="1234 5678"
+              // Permite pegar o autocompletar "+56 9 1234 5678"; el formato lo deja en "1234 5678".
+              maxLength={20}
+              aria-label={`Celular, después de ${PHONE_PREFIX}`}
+              className={`${inputClass} pl-[5.75rem] tracking-wide`}
+              onChange={(e) => update("telefono", formatPhoneInput(e.target.value))}
+            />
+          </div>
           {errorText("telefono")}
         </div>
+
         <div className="sm:col-span-2">
           {label("comuna", "Comuna")}
           <input
             {...fieldProps("comuna")}
             type="text"
             autoComplete="address-level2"
+            autoCapitalize="words"
             placeholder="Comuna donde está el equipo"
+            className={inputClass}
             onChange={(e) => update("comuna", e.target.value)}
           />
           {errorText("comuna")}
         </div>
-        <div>
-          {label("electrodomestico", "Tipo de electrodoméstico")}
-          {selectWrap(
-            WashingMachine,
-            <select {...fieldProps("electrodomestico")} required className={selectClass} onChange={(e) => update("electrodomestico", e.target.value)}>
-            <option value="">Seleccionar</option>
-            {appliances.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>,
-          )}
-          {errorText("electrodomestico")}
-        </div>
-        <div>
-          {label("marca", "Marca")}
-          {selectWrap(
-            Tags,
-            <select {...fieldProps("marca")} required className={selectClass} onChange={(e) => update("marca", e.target.value)}>
-            <option value="">Seleccionar</option>
-            {BRAND_OPTIONS.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </select>,
-          )}
-          {errorText("marca")}
-        </div>
+
         <div className="sm:col-span-2">
-          {label("problema", "Descripción del problema")}
+          {label("problema", "Equipo, marca y problema")}
+          <p id="contacto-problema-ayuda" className="-mt-1 mb-2 text-sm text-muted">
+            Indica el tipo de equipo, la marca y qué falla presenta.
+          </p>
           <textarea
             {...fieldProps("problema")}
             rows={4}
-            placeholder="Ej.: la lavadora no centrifuga y queda con agua."
+            placeholder="Ej.: Lavadora LG de carga frontal. No centrifuga y queda con agua."
+            className={inputClass}
             onChange={(e) => update("problema", e.target.value)}
           />
           {errorText("problema")}
@@ -400,7 +405,7 @@ export function ContactForm() {
             {whatsappUrl() && (
               <button
                 type="button"
-                onClick={fallbackToWhatsApp}
+                onClick={() => fallbackToWhatsApp(normalizeContact(data))}
                 className="mt-2 inline-flex items-center gap-2 font-semibold text-[#0f773f] underline-offset-4 hover:underline"
               >
                 <WhatsAppIcon className="size-4" />
