@@ -125,6 +125,8 @@ export function ContactForm() {
       const result = (await res.json().catch(() => null)) as ContactApiResponse | null;
 
       if (result?.ok) {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: 'lead_formulario' });
         trackEvent("form_submit", { channel: "email" });
         setSent(clean);
         setData(EMPTY);

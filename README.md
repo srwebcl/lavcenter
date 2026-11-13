@@ -154,6 +154,7 @@ Eventos que se envían a `dataLayer`, y también a gtag cuando no hay GTM:
 | `whatsapp_click` | Clic en cualquier botón de WhatsApp | `location` (header, menu_movil, flotante, servicio_lavadoras, contacto, footer…) |
 | `phone_click` | Clic en un enlace `tel:` | `location` |
 | `form_submit` | Solicitud enviada (por correo o, como respaldo, por WhatsApp) | `channel` (`email` o `whatsapp`) |
+| `lead_formulario` | Solo cuando el servidor confirma el envío por correo (conversión de Google Ads en GTM) | — |
 
 Las consultas por servicio se distinguen por `location = servicio_<id>` dentro de `whatsapp_click`.
 
